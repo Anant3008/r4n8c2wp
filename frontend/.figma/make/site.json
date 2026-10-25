@@ -1,0 +1,10 @@
+{
+  "description": "Helps UK electricity procurement analysts compare wind forecasts with actual generation, assess accuracy, and review forecast revisions to support day-ahead purchasing decisions.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
