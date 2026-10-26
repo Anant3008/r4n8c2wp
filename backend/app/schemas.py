@@ -34,18 +34,19 @@ class MetricsResponse(BaseModel):
 
 class DailyPerformanceResponse(BaseModel):
     day: int
+    date: Optional[str] = None
     label: str
     count: int
     missing: int
     missingForecast: int
     pairs: int
-    forecast: Optional[float]
-    actual: Optional[float]
-    error: Optional[float]
-    mae: Optional[float]
-    relativeMae: Optional[float]
-    rmse: Optional[float]
-    bias: Optional[float]
+    forecast: Optional[float] = None
+    actual: Optional[float] = None
+    error: Optional[float] = None
+    mae: Optional[float] = None
+    relativeMae: Optional[float] = None
+    rmse: Optional[float] = None
+    bias: Optional[float] = None
     coverage: float
 
 

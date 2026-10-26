@@ -275,7 +275,7 @@ pnpm build
 | Method | Endpoint | Query Parameters | Description |
 |---|---|---|---|
 | `GET` | `/health` | None | Service health check and cache status |
-| `GET` | `/api/intervals` | `date` (`all` or `1`..`31`), `cutoff` (`08:00`, `10:00`, `12:00`), `match_mode` | Evaluated half-hourly intervals with selected forecasts and errors |
+| `GET` | `/api/intervals` | `date` (`all`, `1`..`31`, `2026-02-01`), `cutoff` (`08:00`, `10:00`, `12:00`), `match_mode` | Evaluated half-hourly intervals with selected forecasts and errors |
 | `GET` | `/api/metrics` | `date`, `cutoff`, `match_mode` | Quantitative summary metrics (MAE, RMSE, Bias, Coverage %, Pairs) |
 | `GET` | `/api/daily` | `cutoff`, `match_mode` | 31-day aggregated daily performance breakdown and rankings |
 | `GET` | `/api/history` | `timestamp` (ISO UTC), `cutoff`, `match_mode` | Full revision audit trail for an interval with decision-time status tags |

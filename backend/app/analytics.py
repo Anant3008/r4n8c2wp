@@ -71,7 +71,8 @@ def evaluate_intervals(
         dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
         day = dt.day
         time_str = dt.strftime("%H:%M")
-        label = f"{day:02d} Jan {time_str}"
+        month_abbr = dt.strftime("%b")
+        label = f"{day:02d} {month_abbr} {time_str}"
         deadline_str = get_cutoff_deadline(ts, cutoff_hour, cutoff_minute)
 
         # Lookup forecasts for this delivery interval
@@ -185,10 +186,15 @@ def compute_metrics(df: pd.DataFrame) -> Dict[str, Any]:
 def compute_daily_performance(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """Aggregate evaluated intervals into daily performance summaries."""
     daily_list = []
-    days = sorted(df["day"].unique())
+    # Extract unique dates formatted as YYYY-MM-DD
+    dates = sorted(pd.to_datetime(df["timestamp"]).dt.strftime("%Y-%m-%d").unique())
 
-    for day in days:
-        day_df = df[df["day"] == day]
+    for date_str in dates:
+        day_df = df[df["timestamp"].str.startswith(date_str)]
+        dt = datetime.fromisoformat(f"{date_str}T00:00:00+00:00")
+        day_num = dt.day
+        month_abbr = dt.strftime("%b")
+
         m = compute_metrics(day_df)
         total_count = len(day_df)
         missing_act = int(day_df["actual"].isna().sum())
@@ -196,8 +202,9 @@ def compute_daily_performance(df: pd.DataFrame) -> List[Dict[str, Any]]:
 
         daily_list.append(
             {
-                "day": int(day),
-                "label": f"{day:02d} Jan",
+                "day": int(day_num),
+                "date": date_str,
+                "label": f"{day_num:02d} {month_abbr}",
                 "count": total_count,
                 "missing": missing_act,
                 "missingForecast": missing_fc,
@@ -332,11 +339,12 @@ def get_evaluated_dataset(
     cutoff: str = "10:00",
     match_mode: MatchMode = "exact",
 ) -> pd.DataFrame:
-    """Cached evaluation of the January 2026 dataset for given cutoff and match mode."""
+    """Cached evaluation of the dataset (Jan 1 - Feb 1) for given cutoff and match mode."""
     return evaluate_intervals(
-        actuals_df=data_store.actuals,
-        forecasts_df=data_store.forecasts,
+        actuals_df=data_store.all_actuals,
+        forecasts_df=data_store.all_forecasts,
         cutoff=cutoff,
         match_mode=match_mode,
     )
+
 

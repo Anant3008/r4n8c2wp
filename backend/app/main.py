@@ -142,9 +142,10 @@ def get_daily_performance(
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time"),
     match_mode: MatchMode = Query("hourly_block", description="'hourly_block' or 'exact'"),
 ) -> List[DailyPerformanceResponse]:
-    """Retrieve 31-day aggregated performance breakdown for January 2026."""
+    """Retrieve daily aggregated performance breakdown for January 2026."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)
-    daily_list = compute_daily_performance(df)
+    jan_df = df[df["timestamp"] <= "2026-01-31T23:30:00Z"]
+    daily_list = compute_daily_performance(jan_df)
     return [DailyPerformanceResponse(**clean_dict(day)) for day in daily_list]
 
 
