@@ -14,7 +14,7 @@ export default function Workstation() {
     <div className={`workstation ${m.page === 0 ? "overview-mode" : ""}`}>
       <Sidebar page={m.page} navigate={m.navigate} setNotice={m.setNotice} />
       <div className="main-shell">
-        <Topbar page={m.page} />
+        <Topbar page={m.page} dataSource={m.dataSource} />
         <main>
           <PageHeader
             page={m.page}

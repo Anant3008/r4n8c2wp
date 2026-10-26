@@ -1,7 +1,13 @@
 import { useTheme } from "@figma/astraui"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { analysisURL, useAnalysisLocation } from "../analysisLocation"
-import { evaluate, intervals, metrics, type Evaluated } from "../data"
+import {
+  evaluate,
+  fetchIntervals,
+  intervals,
+  metrics,
+  type Evaluated,
+} from "../data"
 import { getDailyPerformance } from "../lib/dailyPerformance"
 import useRecords from "./useRecords"
 
@@ -30,9 +36,35 @@ export default function useWorkstation() {
   const [shareLink, setShareLink] = useState("")
   useEffect(() => setShareLink(""), [page, date, cutoff, analysis.interval])
   const [notice, setNotice] = useState("")
+
+  const [serverRows, setServerRows] = useState<Evaluated[] | null>(null)
+  const [dataSource, setDataSource] = useState<"api" | "fixture">("fixture")
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    fetchIntervals("all", cutoff)
+      .then((data) => {
+        if (active && Array.isArray(data) && data.length > 0) {
+          setServerRows(data)
+          setDataSource("api")
+        }
+      })
+      .catch((err) => {
+        console.warn("Backend not available, using baseline fixtures:", err.message)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [cutoff])
+
   const evaluated = useMemo(
-    () => intervals.map((row) => evaluate(row, cutoff)),
-    [cutoff],
+    () => serverRows ?? intervals.map((row) => evaluate(row, cutoff)),
+    [serverRows, cutoff],
   )
   const rows = useMemo(
     () => evaluated.filter((row) => date === "all" || row.day === Number(date)),
@@ -130,6 +162,8 @@ export default function useWorkstation() {
     navigate,
     copyAnalysisLink,
     download,
+    dataSource,
+    loading,
   }
 }
 

@@ -79,6 +79,7 @@ def clean_dict(d: dict) -> dict:
 
 
 @app.get("/health", response_model=HealthResponse)
+@app.get("/api/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     loaded = False
     try:
