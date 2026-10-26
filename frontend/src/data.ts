@@ -30,14 +30,19 @@ export function metrics(rows: Evaluated[]) {
 }
 
 export function getApiBase(): string {
+  // 1. Explicit Vite environment variable (set via .env or Vercel settings)
   try {
-    const envUrl = new Function('return typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL')() as string | undefined;
+    const envUrl = (new Function('return typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL')() as string | undefined);
     if (envUrl) return envUrl;
   } catch {}
+
+  // 2. Browser context: in Docker container behind Nginx proxy (port 3000), use relative path
   if (typeof window !== "undefined") {
     if (window.location.port === "3000") return "";
   }
-  return (typeof process !== "undefined" && process.env?.VITE_API_URL) || "http://localhost:8000";
+
+  // 3. Fallback for standalone local Vite dev server
+  return "http://localhost:8000";
 }
 
 export const API_BASE = getApiBase();
