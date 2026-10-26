@@ -85,8 +85,7 @@ export default function DailyPerformanceTable({
           Showing {daily.length} of {daily.length} days
         </span>
         <span>
-          Source schema: Elexon BMRS{" "}
-          <span className="muted">· Synthetic data</span>
+          Source schema: Elexon BMRS
         </span>
       </div>
     </Panel>
