@@ -1,4 +1,5 @@
 {
+  "title": "WindSight · UK Wind Power Generation & Forecast Analysis",
   "description": "Helps UK electricity procurement analysts compare wind forecasts with actual generation, assess accuracy, and review forecast revisions to support day-ahead purchasing decisions.",
   "robots": {
     "index": false
