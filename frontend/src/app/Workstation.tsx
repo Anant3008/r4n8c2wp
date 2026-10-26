@@ -12,7 +12,12 @@ export default function Workstation() {
   const m = useWorkstation()
   return (
     <div className={`workstation ${m.page === 0 ? "overview-mode" : ""}`}>
-      <Sidebar page={m.page} navigate={m.navigate} setNotice={m.setNotice} />
+      <Sidebar
+        page={m.page}
+        navigate={m.navigate}
+        setNotice={m.setNotice}
+        dataSource={m.dataSource}
+      />
       <div className="main-shell">
         <Topbar page={m.page} dataSource={m.dataSource} />
         <main>

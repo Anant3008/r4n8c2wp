@@ -5,11 +5,14 @@ export default function Sidebar({
   page,
   navigate,
   setNotice,
+  dataSource = "fixture",
 }: {
   page: number
   navigate: (page: number) => void
   setNotice: (notice: string) => void
+  dataSource?: "api" | "fixture"
 }) {
+  const isLive = dataSource === "api"
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -43,8 +46,15 @@ export default function Sidebar({
       <div className="sidebar-bottom">
         <div className="source-box">
           <div className="flex items-center gap-md">
-            <span className="status-dot" />
-            <span className="text-label-sm">Backend not connected</span>
+            <span
+              className="status-dot"
+              style={{
+                background: isLive ? "var(--actual)" : "var(--warning)",
+              }}
+            />
+            <span className="text-label-sm">
+              {isLive ? "Elexon BMRS API Connected" : "BMRS Offline Cache"}
+            </span>
           </div>
           <div className="text-video-title muted mt-lg">
             Elexon BMRS schema
@@ -61,7 +71,7 @@ export default function Sidebar({
           iconStart={<HelpCircle size={17} />}
           onClick={() =>
             setNotice(
-              "Error = forecast − actual. Forecast selection uses the latest publication at or before the configured day-ahead UTC cutoff. All displayed data is synthetic.",
+              "Error = forecast − actual. Forecast selection uses the latest WINDFOR publication at or before the configured day-ahead UTC cutoff evaluated against actual FUELHH generation.",
             )
           }
         >

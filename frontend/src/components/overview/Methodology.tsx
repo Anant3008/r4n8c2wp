@@ -61,8 +61,7 @@ export default function Methodology({
           revisions are excluded, never substituted. Error = forecast − actual.
           MAE, RMSE, and bias use matched observations only. Relative MAE = MAE
           / mean matched actual; this is not MAPE. Coverage = eligible forecasts
-          / expected intervals. WINDFOR + FUELHH schema; current data is
-          synthetic.
+          / expected intervals. Sourced directly from Elexon BMRS (WINDFOR + FUELHH) for January 2026.
         </div>
       </div>
     </details>

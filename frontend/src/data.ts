@@ -1,20 +1,9 @@
-// Server-supplied BMRS API integration and data models.
+// Server-supplied BMRS API integration and verified January 2026 data models.
+import realIntervals from "./realIntervals.json";
+
 export type Interval = { timestamp: string; day: number; time: string; actual: number | null; publications: { publishTime: string; value: number }[] };
 
-export const intervals: Interval[] = Array.from({ length: 1488 }, (_, i) => {
-  const day = Math.floor(i / 48) + 1;
-  const time = `${String(Math.floor(i % 48 / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`;
-  const timestamp = `2026-01-${String(day).padStart(2, '0')}T${time}:00Z`;
-  const actual = Math.round(9500 + 3600 * Math.sin(i / 35) + 2300 * Math.cos(i / 77) + 650 * Math.sin(i / 8));
-  const previous = new Date(Date.UTC(2026, 0, day - 1)).toISOString().slice(0, 10);
-  const baseline = actual + Math.round(730 * Math.sin(i / 13) + 340 * Math.cos(i / 7) + 170);
-  return { timestamp, day, time, actual: i % 137 === 0 ? null : actual, publications: [
-    { publishTime: `${previous}T06:00:00Z`, value: baseline + 260 },
-    { publishTime: `${previous}T09:00:00Z`, value: baseline },
-    { publishTime: `${previous}T12:00:00Z`, value: baseline - 190 },
-    { publishTime: timestamp, value: actual + 80 },
-  ] };
-});
+export const intervals: Interval[] = realIntervals as Interval[];
 
 export function evaluate(row: Interval, cutoff: string) {
   const deadline = new Date(row.timestamp);

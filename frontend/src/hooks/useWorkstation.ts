@@ -129,10 +129,10 @@ export default function useWorkstation() {
     const url = URL.createObjectURL(new Blob([data], { type: "text/csv" }))
     const link = document.createElement("a")
     link.href = url
-    link.download = "windsight-demo-january-2026.csv"
+    link.download = "windsight-january-2026.csv"
     link.click()
     URL.revokeObjectURL(url)
-    setNotice("Demo dataset exported as CSV.")
+    setNotice("January 2026 dataset exported as CSV.")
   }
 
   return {

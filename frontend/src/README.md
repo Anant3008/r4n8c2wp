@@ -13,7 +13,7 @@
 - `lib/`: stateless chart configuration, ranking/navigation helpers, and daily summaries.
 
 `analysisLocation.ts` remains the source of truth for URL-backed analysis state.
-`data.ts` retains the existing synthetic fixtures and metric calculations.
+`data.ts` integrates with the FastAPI backend and bundles verified Elexon BMRS January 2026 data.
 `analysisFormatting.ts` owns shared display formatting.
 
 The root `AnalystWorkspace.tsx`, `AnalysisInteractions.tsx`, and
