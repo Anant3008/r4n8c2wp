@@ -13,7 +13,7 @@ The application supports day-ahead electricity procurement decisions by:
 ## Technology Stack
 
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS v4, Recharts, Lucide Icons, Figma Astra UI.
-- **Backend**: FastAPI, Python, Pandas, NumPy (in progress).
+- **Backend**: FastAPI, Python 3.12, Pandas, NumPy, Pydantic, Uvicorn.
 - **Data Source**: Elexon BMRS API (`FUELHH` for actual wind generation, `WINDFOR` for wind forecasts).
 
 ## Project Structure
@@ -22,26 +22,51 @@ The application supports day-ahead electricity procurement decisions by:
 ├── frontend/          # React + Vite application
 │   ├── src/           # Components, pages, hooks, data models
 │   ├── public/        # Static assets
+│   ├── Dockerfile     # Frontend multi-stage container
 │   └── package.json   # Frontend dependencies
-├── backend/           # FastAPI backend (in progress)
+├── backend/           # FastAPI backend
+│   ├── app/           # API routes, schemas, and services
+│   ├── tests/         # Unit and integration tests
+│   ├── Dockerfile     # Backend Python container
+│   └── requirements.txt
+├── docker-compose.yml # Full-stack container orchestration
 └── README.md
 ```
 
-## Getting Started (Frontend)
+## Running with Docker Compose (Recommended)
 
-### Prerequisites
-- Node.js (v20+)
-- pnpm (or npm / yarn)
+To run the complete stack (FastAPI backend + React frontend) in containers:
 
-### Local Development
+```bash
+docker compose up --build
+```
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **Interactive API Docs (Swagger)**: http://localhost:8000/docs
+
+## Local Development
+
+### 1. Backend (FastAPI)
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+Run backend tests:
+```bash
+pytest
+```
+
+### 2. Frontend (React)
 ```bash
 cd frontend
 pnpm install
 pnpm dev
 ```
-The application will be available at `http://localhost:8443` (or the port specified by Vite).
-
-### Testing & Validation
+Run frontend checks:
 ```bash
 cd frontend
 pnpm exec tsc --noEmit
