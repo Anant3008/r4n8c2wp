@@ -3,9 +3,13 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 
 for (const extension of ['.ts', '.tsx']) {
-  require.extensions[extension] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-  }).outputText, filename);
+  require.extensions[extension] = (module, filename) => {
+    const rawCode = fs.readFileSync(filename, 'utf8');
+    const sanitized = rawCode.replace(/import\.meta\.env/g, '({ VITE_API_URL: "" })');
+    return module._compile(ts.transpileModule(sanitized, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+    }).outputText, filename);
+  };
 }
 require.extensions['.css'] = () => {};
 
