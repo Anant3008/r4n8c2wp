@@ -54,7 +54,12 @@ def test_get_metrics() -> None:
     assert "rmse" in data
     assert "bias" in data
     assert "coverage" in data
-    assert data["pairs"] == 744
+    assert data["pairs"] == 1488
+
+    # Also verify exact mode
+    resp_exact = client.get("/api/metrics?date=all&cutoff=10:00&match_mode=exact")
+    assert resp_exact.status_code == 200
+    assert resp_exact.json()["pairs"] == 744
 
 
 def test_get_daily_performance() -> None:

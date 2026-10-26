@@ -94,6 +94,7 @@ export default function GenerationChart({
             stroke={colors.forecast}
             fill="url(#forecastFill)"
             strokeWidth={2}
+            connectNulls={true}
             isAnimationActive={false}
           />
           <Line
@@ -103,6 +104,7 @@ export default function GenerationChart({
             stroke={colors.actual}
             strokeDasharray="5 3"
             strokeWidth={2.4}
+            connectNulls={true}
             dot={false}
             isAnimationActive={false}
           />

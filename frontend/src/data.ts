@@ -56,7 +56,7 @@ export const API_BASE = getApiBase();
 export async function fetchIntervals(
   date = "all",
   cutoff = "10:00",
-  matchMode = "exact",
+  matchMode = "hourly_block",
 ): Promise<Evaluated[]> {
   const url = `${API_BASE}/api/intervals?date=${encodeURIComponent(
     date,

@@ -113,7 +113,7 @@ def root() -> dict:
 def get_intervals(
     date: str = Query("all", description="Delivery date: 'all' or day number '1'..'31'"),
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time (e.g. '08:00', '10:00', '12:00')"),
-    match_mode: MatchMode = Query("exact", description="'exact' (no gap filling) or 'hourly_block'"),
+    match_mode: MatchMode = Query("hourly_block", description="'hourly_block' (continuous evaluation) or 'exact'"),
 ) -> List[EvaluatedInterval]:
     """Retrieve evaluated half-hourly delivery intervals for January 2026."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)
@@ -125,7 +125,7 @@ def get_intervals(
 def get_metrics(
     date: str = Query("all", description="Delivery date: 'all' or day number '1'..'31'"),
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time"),
-    match_mode: MatchMode = Query("exact", description="'exact' or 'hourly_block'"),
+    match_mode: MatchMode = Query("hourly_block", description="'hourly_block' or 'exact'"),
 ) -> MetricsResponse:
     """Retrieve summary forecast evaluation metrics (MAE, RMSE, bias, coverage)."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)
@@ -137,7 +137,7 @@ def get_metrics(
 @app.get("/api/daily", response_model=List[DailyPerformanceResponse])
 def get_daily_performance(
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time"),
-    match_mode: MatchMode = Query("exact", description="'exact' or 'hourly_block'"),
+    match_mode: MatchMode = Query("hourly_block", description="'hourly_block' or 'exact'"),
 ) -> List[DailyPerformanceResponse]:
     """Retrieve 31-day aggregated performance breakdown for January 2026."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)
@@ -149,7 +149,7 @@ def get_daily_performance(
 def get_history(
     timestamp: str = Query(..., description="Interval timestamp in ISO 8601 UTC format, e.g. '2026-01-15T14:00:00Z'"),
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time"),
-    match_mode: MatchMode = Query("exact", description="'exact' or 'hourly_block'"),
+    match_mode: MatchMode = Query("hourly_block", description="'hourly_block' or 'exact'"),
 ) -> IntervalHistoryResponse:
     """Retrieve publication revision audit trail for a single delivery interval."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)
@@ -186,7 +186,7 @@ def get_history(
 def get_analysis_summary(
     date: str = Query("all", description="Delivery date: 'all' or day number '1'..'31'"),
     cutoff: str = Query("10:00", description="D-1 procurement decision cutoff UTC time"),
-    match_mode: MatchMode = Query("exact", description="'exact' or 'hourly_block'"),
+    match_mode: MatchMode = Query("hourly_block", description="'hourly_block' or 'exact'"),
 ) -> AnalysisSummaryResponse:
     """Retrieve combined analysis summary including metrics, direction, and error distribution."""
     df = get_evaluated_dataset(cutoff=cutoff, match_mode=match_mode)

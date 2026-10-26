@@ -169,6 +169,7 @@ export default function AnalystChart({
                 stroke="none"
                 fill="var(--forecast)"
                 fillOpacity={0.09}
+                connectNulls={true}
                 isAnimationActive={false}
                 activeDot={false}
                 legendType="none"
@@ -178,6 +179,7 @@ export default function AnalystChart({
                 name="Eligible forecast"
                 stroke="var(--forecast)"
                 strokeWidth={2.2}
+                connectNulls={true}
                 dot={false}
                 activeDot={{ r: 4 }}
                 isAnimationActive={false}
@@ -188,6 +190,7 @@ export default function AnalystChart({
                 stroke="var(--actual)"
                 strokeDasharray="5 3"
                 strokeWidth={2.4}
+                connectNulls={true}
                 dot={false}
                 activeDot={{ r: 4 }}
                 isAnimationActive={false}
