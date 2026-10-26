@@ -7,38 +7,92 @@ class Publication(BaseModel):
     value: float = Field(..., description="Forecasted wind generation in MW")
 
 
-class IntervalRecord(BaseModel):
-    timestamp: str = Field(..., description="Delivery interval start timestamp in ISO 8601 UTC")
+class EvaluatedInterval(BaseModel):
+    timestamp: str = Field(..., description="Delivery interval ISO 8601 UTC timestamp")
     day: int = Field(..., ge=1, le=31, description="Day of January 2026")
     time: str = Field(..., description="Time string in HH:MM format")
-    actual: Optional[float] = Field(None, description="Actual metered wind generation in MW, or null if missing")
-    publications: List[Publication] = Field(default_factory=list, description="Historical forecast publications")
-
-
-class EvaluatedInterval(BaseModel):
-    timestamp: str
-    day: int
-    time: str
-    actual: Optional[float]
-    publications: List[Publication]
-    forecast: Optional[float]
-    publicationTime: Optional[str]
-    error: Optional[float]
-    label: str
-    cutoff: str
+    label: str = Field(..., description="Display label, e.g. '15 Jan 12:00'")
+    actual: Optional[float] = Field(None, description="Actual wind generation in MW, or null if missing")
+    forecast: Optional[float] = Field(None, description="Selected forecast in MW available at cutoff, or null")
+    publicationTime: Optional[str] = Field(None, description="Timestamp when selected forecast was published")
+    error: Optional[float] = Field(None, description="Signed error (forecast - actual) in MW, or null")
+    cutoff: str = Field(..., description="Procurement decision cutoff deadline in ISO 8601 UTC")
+    publications: List[Publication] = Field(default_factory=list, description="All raw publications for this interval")
 
 
 class MetricsResponse(BaseModel):
-    forecast: float
-    actual: float
-    mae: float
-    relativeMae: float
-    rmse: float
-    bias: float
+    forecast: Optional[float] = None
+    actual: Optional[float] = None
+    mae: Optional[float] = None
+    relativeMae: Optional[float] = None
+    rmse: Optional[float] = None
+    bias: Optional[float] = None
     coverage: float
     pairs: int
+
+
+
+class DailyPerformanceResponse(BaseModel):
+    day: int
+    label: str
+    count: int
+    missing: int
+    missingForecast: int
+    pairs: int
+    forecast: Optional[float]
+    actual: Optional[float]
+    error: Optional[float]
+    mae: Optional[float]
+    relativeMae: Optional[float]
+    rmse: Optional[float]
+    bias: Optional[float]
+    coverage: float
+
+
+class PublicationHistoryItem(BaseModel):
+    publishTime: str
+    value: float
+    revision: Optional[float]
+    status: str = Field(..., description="'selected', 'superseded', or 'excluded'")
+    statusLabel: str = Field(..., description="Human-readable status label")
+
+
+class IntervalHistoryResponse(BaseModel):
+    timestamp: str
+    day: int
+    time: str
+    cutoff: str
+    actual: Optional[float]
+    forecast: Optional[float]
+    publicationTime: Optional[str]
+    error: Optional[float]
+    publications: List[PublicationHistoryItem]
+
+
+class ErrorBin(BaseModel):
+    binStart: float
+    binEnd: float
+    label: str
+    count: int
+
+
+class ForecastDirectionResponse(BaseModel):
+    overestimateCount: int
+    overestimateMean: float
+    underestimateCount: int
+    underestimateMean: float
+    exactCount: int
+
+
+class AnalysisSummaryResponse(BaseModel):
+    date: str
+    cutoff: str
+    metrics: MetricsResponse
+    direction: ForecastDirectionResponse
+    distribution: List[ErrorBin]
 
 
 class HealthResponse(BaseModel):
     status: str
     service: str
+    records_loaded: bool
