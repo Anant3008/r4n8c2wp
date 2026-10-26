@@ -59,31 +59,46 @@ The application provides 5 purpose-built analytical workspaces:
 
 The application uses 100% verified real data from the Elexon BMRS API (`https://data.elexon.co.uk/bmrs/api/v1`). No synthetic or fabricated data is used.
 
-### Data Streams:
+### Data Streams & Temporal Scope:
+In day-ahead electricity markets, purchasing decisions and physical delivery operate on a **staggered temporal timeline**:
+- **Purchasing decisions made on January 1, 2026** (at 08:00, 10:00, or 12:00 UTC) procure power for delivery on **January 2, 2026**.
+- **Purchasing decisions made on January 31, 2026** procure power for physical delivery on **February 1, 2026**.
+- Conversely, power physically delivered on **January 1, 2026** was purchased on **December 31, 2025**.
+
+To rigorously support both perspectives (delivery dates within January 2026 and procurement decisions made during January 2026), the ingestion pipeline spans both boundary months:
+
 1. **Actual Wind Generation (`FUELHH`)**:
-   - Dataset: `FUELHH` filtered by `fuelType=WIND`.
+   - Source: Elexon BMRS `FUELHH` dataset filtered by `fuelType=WIND`.
    - Fields: `startTime`, `settlementDate`, `settlementPeriod`, `generation`, `publishTime`.
-   - Resolution: 30-minute settlement periods (48 periods per day × 31 days = 1,488 records).
+   - Resolution: 30-minute settlement periods (48 periods per day).
+   - Ingested Scope: **January 1, 2026 through February 1, 2026** (32 days × 48 = 1,536 settlement periods), ensuring that trading decisions made on January 31, 2026 can be evaluated against their actual delivery outcomes on February 1.
+
 2. **Wind Generation Forecasts (`WINDFOR`)**:
-   - Dataset: `WINDFOR`.
+   - Source: Elexon BMRS `WINDFOR` dataset.
    - Fields: `startTime`, `publishTime`, `generation`.
-   - Coverage: Ingested all publications from December 28, 2025 through February 1, 2026 (18,104 publications) to ensure every historical revision and day-ahead forecast for January 2026 delivery is available.
+   - Ingested Scope: Ingested all forecast revisions published between **December 28, 2025 and February 2, 2026** (18,688 publications). This ensures that forecasts published in late December 2025 for January 1 delivery, as well as forecasts published on January 31 for February 1 delivery, are fully present.
 
 ### Data Integrity Standards:
-- **Zero Fabrication**: All records are validated against Elexon schemas.
-- **Missing vs. Zero Distinction**: Genuinely zero generation (`0 MW`) is strictly differentiated from missing data (`null`), ensuring zero values are not falsely treated as missing.
-- **Offline Reliability & Caching**: The validated historical datasets are bundled directly with the application in high-performance **Parquet** format (`backend/data/`). The FastAPI backend loads this cache into memory with zero runtime dependency on external third-party API availability.
+- **Zero Fabrication**: All records are validated against Elexon schemas without synthetic fillers.
+- **Missing vs. Zero Distinction**: Genuinely zero generation (`0 MW`) is strictly differentiated from missing data (`null`), ensuring true zero generation is not erroneously categorized as missing.
+- **High-Performance Local Caching**: The validated historical datasets are bundled directly with the application in **Parquet** format (`backend/data/`). The FastAPI backend loads this cache into memory on startup, eliminating runtime latency, rate limits, and external downtime risks associated with querying third-party APIs during user analysis.
 
 ---
 
 ## 4. Methodology & Evaluation Logic
 
-### 1. Decision-Time Availability Cutoff
-Forecast accuracy must only be scored using data that was knowable at the actual decision time. For any delivery interval on Day $D$, procurement decisions occur on Day $D-1$ at an assumed cutoff time (e.g. `08:00`, `10:00`, or `12:00` UTC).
-$$\text{Cutoff Deadline} = \text{Date}(D-1) \text{ at } \text{HH:MM UTC}$$
-- Any forecast published with $\text{publishTime} > \text{Cutoff Deadline}$ is strictly excluded.
-- The forecast selected for evaluation is:
-  $$\text{Forecast} = \arg\max_{\text{publishTime} \le \text{Cutoff Deadline}} (\text{publishTime})$$
+### 1. Connecting Forecast Selection to Purchasing Decisions
+The application evaluates forecast accuracy from the perspective of an energy utility trader at the moment a day-ahead auction bid is submitted.
+
+In the UK market (EPEX SPOT / Nord Pool UK Day-Ahead Auctions), auction gate closure occurs on Day $D-1$ (commonly between 09:30 and 12:00 UTC). An analyst evaluating forecast risk cannot evaluate forecasts published after the decision was finalized:
+$$\text{Cutoff Deadline} = \text{Date}(D-1) \text{ at } \text{Cutoff UTC (08:00, 10:00, or 12:00)}$$
+
+The forecast selection algorithm strictly enforces this timeline:
+1. All publications where $\text{publishTime} > \text{Cutoff Deadline}$ are categorized as `After cutoff · excluded`.
+2. All publications where $\text{publishTime} \le \text{Cutoff Deadline}$ are deemed eligible.
+3. The latest eligible publication is selected as the decision basis:
+   $$\text{Selected Forecast} = \arg\max_{\text{publishTime} \le \text{Cutoff Deadline}} (\text{publishTime})$$
+4. Earlier eligible publications are labeled `Available · superseded`, preserving a complete audit trail of how forecast expectations shifted prior to the trade.
 
 ### 2. Market Resolution Mapping
 Elexon publishes WINDFOR forecasts on an hourly basis, whereas UK settlement periods and actual generation (FUELHH) occur in half-hour intervals. In the UK market, an hourly forecast represents the anticipated average generation for that entire 1-hour delivery block. The engine maps the hourly forecast across both half-hour settlement periods in that block (`hourly_block` mode), providing continuous 48-period evaluation while also supporting strict point-in-time matching (`exact` mode).

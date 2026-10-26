@@ -27,26 +27,26 @@ BMRS_BASE_URL = "https://data.elexon.co.uk/bmrs/api/v1/datasets"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 JANUARY_2026_START = datetime(2026, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
-JANUARY_2026_END = datetime(2026, 1, 31, 23, 30, 0, tzinfo=timezone.utc)
-TOTAL_EXPECTED_PERIODS = 31 * 48  # 1,488 settlement periods
+DELIVERY_WINDOW_END = datetime(2026, 2, 1, 23, 30, 0, tzinfo=timezone.utc)
+TOTAL_EXPECTED_PERIODS = 32 * 48  # 1,536 settlement periods (Jan 1 - Feb 1 delivery)
 
 
 def generate_expected_intervals() -> list[str]:
-    """Generate all 1,488 half-hourly ISO UTC timestamps for January 2026."""
+    """Generate all 1,536 half-hourly ISO UTC timestamps covering Jan 1 to Feb 1."""
     intervals = []
     curr = JANUARY_2026_START
-    while curr <= JANUARY_2026_END:
+    while curr <= DELIVERY_WINDOW_END:
         intervals.append(curr.strftime("%Y-%m-%dT%H:%M:%SZ"))
         curr += timedelta(minutes=30)
     return intervals
 
 
 def fetch_fuelhh_actuals(client: httpx.Client) -> pd.DataFrame:
-    """Fetch FUELHH actual wind generation for January 2026 in 7-day chunks."""
+    """Fetch FUELHH actual wind generation from 2026-01-01 through 2026-02-01 in 7-day chunks."""
     print("-> Fetching FUELHH actual wind generation...")
     records = []
     curr_date = date(2026, 1, 1)
-    end_date = date(2026, 1, 31)
+    end_date = date(2026, 2, 1)
 
     while curr_date <= end_date:
         chunk_end = min(curr_date + timedelta(days=6), end_date)
@@ -76,7 +76,7 @@ def fetch_windfor_forecasts(client: httpx.Client) -> pd.DataFrame:
     print("-> Fetching WINDFOR forecast publications...")
     records = []
     pub_start = datetime(2025, 12, 28, 0, 0, 0, tzinfo=timezone.utc)
-    pub_end = datetime(2026, 2, 1, 23, 59, 59, tzinfo=timezone.utc)
+    pub_end = datetime(2026, 2, 2, 23, 59, 59, tzinfo=timezone.utc)
 
     curr_time = pub_start
     while curr_time < pub_end:
@@ -116,8 +116,8 @@ def validate_and_normalize_fuelhh(df: pd.DataFrame) -> pd.DataFrame:
         print(f"   [NOTICE] Found {len(duplicates)} duplicate FUELHH records. Deduplicating (keeping latest)...")
         df = df.drop_duplicates(subset=["startTime"], keep="last")
 
-    # Filter strictly to January 2026
-    df = df[(df["startTime"] >= "2026-01-01T00:00:00Z") & (df["startTime"] <= "2026-01-31T23:30:00Z")].copy()
+    # Filter strictly to Jan 1 - Feb 1 delivery intervals
+    df = df[(df["startTime"] >= "2026-01-01T00:00:00Z") & (df["startTime"] <= "2026-02-01T23:30:00Z")].copy()
     df = df.sort_values(by="startTime").reset_index(drop=True)
 
     # Check completeness against all 1,488 expected periods
@@ -152,8 +152,8 @@ def validate_and_normalize_windfor(df: pd.DataFrame) -> pd.DataFrame:
     df["publishTime"] = pd.to_datetime(df["publishTime"], utc=True).dt.strftime("%Y-%m-%dT%H:%M:%SZ")
     df["generation"] = pd.to_numeric(df["generation"], errors="coerce")
 
-    # Filter strictly to January 2026 delivery intervals
-    df = df[(df["startTime"] >= "2026-01-01T00:00:00Z") & (df["startTime"] <= "2026-01-31T23:30:00Z")].copy()
+    # Filter strictly to Jan 1 - Feb 1 delivery intervals
+    df = df[(df["startTime"] >= "2026-01-01T00:00:00Z") & (df["startTime"] <= "2026-02-01T23:30:00Z")].copy()
 
     # Deduplicate exact (startTime, publishTime) pairs
     raw_count = len(df)

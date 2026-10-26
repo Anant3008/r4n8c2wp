@@ -39,20 +39,23 @@ app.add_middleware(
 
 
 def filter_by_date(df, date_param: str):
-    """Filter evaluated dataframe by date string ('all', '1'..'31', or '2026-01-15')."""
+    """Filter evaluated dataframe by date string ('all', '1'..'31', '2026-01-15', or '2026-02-01')."""
     if not date_param or date_param.lower() == "all":
-        return df
+        return df[df["timestamp"] <= "2026-01-31T23:30:00Z"]
 
     clean_date = date_param.strip()
     if clean_date.startswith("2026-01-"):
         day_num = int(clean_date.split("-")[-1])
+        return df[(df["day"] == day_num) & (df["timestamp"] <= "2026-01-31T23:30:00Z")]
+    elif clean_date == "2026-02-01":
+        return df[df["timestamp"].str.startswith("2026-02-01")]
     else:
         try:
             day_num = int(clean_date)
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid date parameter '{date_param}'. Use 'all' or day 1-31.",
+                detail=f"Invalid date parameter '{date_param}'. Use 'all', day 1-31, or '2026-02-01'.",
             )
 
     if day_num < 1 or day_num > 31:
@@ -61,7 +64,7 @@ def filter_by_date(df, date_param: str):
             detail=f"Day {day_num} out of bounds for January 2026 (must be 1-31).",
         )
 
-    return df[df["day"] == day_num]
+    return df[(df["day"] == day_num) & (df["timestamp"] <= "2026-01-31T23:30:00Z")]
 
 
 def clean_dict(d: dict) -> dict:

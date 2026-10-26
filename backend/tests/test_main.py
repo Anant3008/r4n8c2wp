@@ -6,7 +6,7 @@ client = TestClient(app)
 STATUS_OK = "ok"
 SERVICE_NAME = "windsight-backend"
 SAMPLE_INTERVAL = "2026-01-15T14:00:00Z"
-INVALID_INTERVAL = "2026-02-01T00:00:00Z"
+INVALID_INTERVAL = "2026-03-01T00:00:00Z"
 
 
 def test_health_check_returns_ok_status() -> None:

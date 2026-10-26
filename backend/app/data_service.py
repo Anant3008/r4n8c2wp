@@ -20,35 +20,49 @@ class DataStore:
         self.data_dir = data_dir
         self.actuals_path = data_dir / "actuals_fuelhh.parquet"
         self.forecasts_path = data_dir / "forecasts_windfor.parquet"
-        self._actuals_df: Optional[pd.DataFrame] = None
-        self._forecasts_df: Optional[pd.DataFrame] = None
+        self._all_actuals_df: Optional[pd.DataFrame] = None
+        self._all_forecasts_df: Optional[pd.DataFrame] = None
 
     @property
-    def actuals(self) -> pd.DataFrame:
-        if self._actuals_df is None:
+    def all_actuals(self) -> pd.DataFrame:
+        """Full actuals dataset including February 1 delivery (1,536 settlement periods)."""
+        if self._all_actuals_df is None:
             if not self.actuals_path.exists():
                 raise FileNotFoundError(
                     f"Actuals cache not found at {self.actuals_path}. Run ingest_bmrs.py first."
                 )
-            self._actuals_df = pd.read_parquet(self.actuals_path)
-        return self._actuals_df
+            self._all_actuals_df = pd.read_parquet(self.actuals_path)
+        return self._all_actuals_df
 
     @property
-    def forecasts(self) -> pd.DataFrame:
-        if self._forecasts_df is None:
+    def all_forecasts(self) -> pd.DataFrame:
+        """Full forecast dataset including February 1 delivery (18,688 publications)."""
+        if self._all_forecasts_df is None:
             if not self.forecasts_path.exists():
                 raise FileNotFoundError(
                     f"Forecasts cache not found at {self.forecasts_path}. Run ingest_bmrs.py first."
                 )
-            self._forecasts_df = pd.read_parquet(self.forecasts_path)
-        return self._forecasts_df
+            self._all_forecasts_df = pd.read_parquet(self.forecasts_path)
+        return self._all_forecasts_df
+
+    @property
+    def actuals(self) -> pd.DataFrame:
+        """January 2026 delivery actuals (1,488 settlement periods)."""
+        df = self.all_actuals
+        return df[df["startTime"] <= "2026-01-31T23:30:00Z"].copy()
+
+    @property
+    def forecasts(self) -> pd.DataFrame:
+        """January 2026 delivery forecasts (18,104 publications)."""
+        df = self.all_forecasts
+        return df[df["startTime"] <= "2026-01-31T23:30:00Z"].copy()
 
     def reload(self) -> None:
         """Force reload datasets from disk."""
-        self._actuals_df = None
-        self._forecasts_df = None
-        _ = self.actuals
-        _ = self.forecasts
+        self._all_actuals_df = None
+        self._all_forecasts_df = None
+        _ = self.all_actuals
+        _ = self.all_forecasts
 
 
 # Global singleton instance
