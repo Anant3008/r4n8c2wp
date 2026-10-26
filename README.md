@@ -2,6 +2,8 @@
 
 A web application designed for UK electricity utility procurement analysts to evaluate national wind power generation forecasts against actual metered generation for **January 2026**, using official data from the **Elexon Balancing Mechanism Reporting Service (BMRS)**.
 
+> **Note on Service Hosting:** The backend API is hosted on Render's free tier, which spins down after 5 minutes of inactivity. If the backend is sleeping, the application automatically serves from its bundled local cache of authentic January 2026 Elexon BMRS data with zero interruption, switching to live API responses once the instance has spun up.
+
 ---
 
 ## 1. Executive Summary & Problem Context
